@@ -2,7 +2,20 @@
 
 
 
-
+function pingIt(tabId, frameId){
+	browser.tabs.sendMessage(tabId, {
+		"action": "ping"
+	}, {
+		frameId: frameId
+	}).then(msg=>{
+		if(msg.action === "pong"){
+			console.log("PONG");
+			window.setTimeout(()=>{
+				pingIt(tabId, frameId);
+			}, Math.ceil(3000 * Math.random()));
+		}
+	});
+}
 
 browser.browserAction.onClicked.addListener(() => {
 	var aTab;
@@ -11,7 +24,7 @@ browser.browserAction.onClicked.addListener(() => {
 	}).then(function(_aTab) {
 		aTab = _aTab;
 		browser.webNavigation.onCompleted.addListener((details) => {
-			if (details.tabId === aTab.id && details.frameId === 0) {
+			if (details.tabId === aTab.id) { // && details.frameId === 0
 				browser.webNavigation.getAllFrames({
 					tabId: aTab.id
 				}).then((frArr) => {
@@ -28,6 +41,7 @@ browser.browserAction.onClicked.addListener(() => {
 									console.count("[BG] Responding frame count");
 								}
 							});
+							pingIt(aTab.id, frObj.frameId);
 						}
 					});
 				});
